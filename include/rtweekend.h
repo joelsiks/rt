@@ -5,6 +5,7 @@
 #include <cmath>
 #include <limits>
 #include <memory>
+#include <random>
 
 // Constants
 const double infinity = std::numeric_limits<double>::infinity();

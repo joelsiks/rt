@@ -22,7 +22,8 @@ public:
     }
 
     virtual bool hit(
-        const Ray& r, double t_min, double t_max, HitRecord& rec) const override;
+        const Ray& r, double t_min, double t_max, HitRecord& rec)
+    const override;
 
 private:
     std::vector<std::shared_ptr<Hittable>> m_objects;
