@@ -5,9 +5,11 @@
 #include "ray.h"
 
 struct HitRecord {
-    Point3 point;
-    Vec3 normal;
     double t;
+    Point3 point;
+
+    // The normal should be unit lenght (normed).
+    Vec3 normal;
 
     bool front_face;
 
