@@ -2,16 +2,19 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
 
-#include "ray.h"
+#include "rtweekend.h"
+
+class Material;
 
 struct HitRecord {
     double t;
     Point3 point;
+    bool front_face;
 
     // The normal should be unit lenght (normed).
     Vec3 normal;
 
-    bool front_face;
+    std::shared_ptr<Material> mat_ptr;
 
     inline void set_face_normal(const Ray& r, const Vec3& outward_normal) {
         front_face = dot(r.direction(), outward_normal) < 0;

@@ -25,6 +25,12 @@ public:
                     random_double(min, max));
     }
 
+    bool near_zero() const {
+        // Return true if the vector is close to zero in all dimensions.
+        const auto s = 1e-8;
+        return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
+    }
+
     double x() const {
         return e[0];
     }
@@ -138,6 +144,10 @@ Vec3 random_in_unit_sphere() {
 
 Vec3 random_unit_vector() {
     return unit_vector(random_in_unit_sphere());
+}
+
+Vec3 reflect(const Vec3& v, const Vec3& n) {
+    return v - 2 * dot(v, n) * n;
 }
 
 #endif // VEC3_H
