@@ -8,7 +8,7 @@ class Camera {
 public:
     // Camera constructor, vertical fov is in degrees.
     Camera(Point3 lookfrom, Point3 lookat, Vec3 vup, double vertical_fov,
-           double aspect_ratio) {
+           double aspect_ratio, double aperture, double focus_dist) {
 
         // The angle theta is the angle between the upper and lower part of the
         // viewport.
@@ -21,20 +21,26 @@ public:
         auto viewport_height = 2.0 * h;
         auto viewport_width = aspect_ratio * viewport_height;
 
-        auto w = unit_vector(lookfrom - lookat);
-        auto u = unit_vector(cross(vup, w));
-        auto v = cross(w, u);
+        m_w = unit_vector(lookfrom - lookat);
+        m_u = unit_vector(cross(vup, m_w));
+        m_v = cross(m_w, m_u);
 
         m_origin = lookfrom;
-        m_horizontal = viewport_width * u;
-        m_vertical = viewport_height * v;
-        m_lower_left_corner = m_origin - m_horizontal / 2 - m_vertical / 2 - w;
+        m_horizontal = focus_dist * viewport_width * m_u;
+        m_vertical = focus_dist * viewport_height * m_v;
+        m_lower_left_corner = m_origin - m_horizontal / 2 - m_vertical / 2 -
+            focus_dist * m_w;
+
+        m_lens_radius = aperture / 2;
     }
 
     // u and v are values between 0.0 - 1.0.
     Ray get_ray(double s, double t) {
-        return Ray(m_origin, m_lower_left_corner + s * m_horizontal +
-            t * m_vertical - m_origin);
+        Vec3 rd = m_lens_radius * random_in_unit_disk();
+        Vec3 offset = m_u * rd.x() + m_v * rd.y();
+
+        return Ray(m_origin + offset, m_lower_left_corner + s * m_horizontal +
+            t * m_vertical - m_origin - offset);
     }
 
 private:
@@ -42,6 +48,9 @@ private:
     Point3 m_lower_left_corner;
     Vec3 m_horizontal;
     Vec3 m_vertical;
+
+    Vec3 m_u, m_v, m_w;
+    double m_lens_radius;
 };
 
 #endif // CAMERA_H

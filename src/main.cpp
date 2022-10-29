@@ -10,6 +10,52 @@
 
 #include <iostream>
 
+HittableList random_scene() {
+    HittableList world;
+
+    auto ground_material = std::make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+    world.add(std::make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
+
+    for(int i = -11; i < 11; i++) {
+        for(int j = -11; j < 11; j++) {
+            auto choose_mat = random_double();
+            Point3 center(i + 0.9 * random_double(), 0.2, j + 0.9 * random_double());
+
+            if((center - Point3(4, 0.2, 0)).length() > 0.9) {
+                std::shared_ptr<Material> sphere_material;
+
+                if (choose_mat < 0.8) {
+                    // Diffuse
+                    auto albedo = Color::random() * Color::random();
+                    sphere_material = std::make_shared<Lambertian>(albedo);
+                    world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+                } else if (choose_mat < 0.95) {
+                    // Metal
+                    auto albedo = Color::random(0.5, 1);
+                    auto fuzz = random_double(0, 0.5);
+                    sphere_material = std::make_shared<Metal>(albedo, fuzz);
+                    world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+                } else {
+                    // Glass
+                    sphere_material = std::make_shared<Dielectric>(1.5);
+                    world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+                }
+            }
+        }
+    }
+
+    auto material1 = std::make_shared<Dielectric>(1.5);
+    world.add(std::make_shared<Sphere>(Point3(0, 1, 0), 1.0, material1));
+
+    auto material2 = std::make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+    world.add(std::make_shared<Sphere>(Point3(-4, 1, 0), 1.0, material2));
+
+    auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
+    world.add(std::make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
+
+    return world;
+}
+
 Color ray_color(const Ray& r, const Hittable& world, int depth) {
     HitRecord rec;
 
@@ -40,14 +86,14 @@ Color ray_color(const Ray& r, const Hittable& world, int depth) {
 int main() {
 
     // Image
-    const auto aspect_ratio = 16.0 / 9.0;
-    const int image_width = 400;
+    const auto aspect_ratio = 3.0 / 2.0;
+    const int image_width = 1200;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 100;
+    const int samples_per_pixel = 500;
     const int ray_bounce_limit = 50;
 
     // World
-    HittableList world;
+    HittableList world = random_scene();
 
     auto material_ground = std::make_shared<Lambertian>(Color(0.4, 0.8, 0.0));
     auto material_center = std::make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
@@ -60,8 +106,15 @@ int main() {
     world.add(std::make_shared<Sphere>(Point3( 1.0,    0.0, -1.0),   0.5, material_right));
 
     // Camera
-    Camera cam(Point3(-2, 2, 1), Point3(0, 0, -1), Vec3(0, 1, 0), 50.0,
-        aspect_ratio);
+    Point3 lookfrom(13.0, 2.0, 3.0);
+    Point3 lookat(0.0, 0.0, 0.0);
+    Vec3 vup(0, 1, 0);
+    double fov_deg = 50;
+    auto aperture = 0.1;
+    auto dist_to_focus = 10.0;
+
+    Camera cam(lookfrom, lookat, vup, fov_deg, aspect_ratio, aperture,
+            dist_to_focus);
 
     // Render
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
