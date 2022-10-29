@@ -6,28 +6,35 @@
 
 class Camera {
 public:
-    Camera() {
-        auto aspect_ratio = 16.0 / 9.0;
+    // Camera constructor, vertical fov is in degrees.
+    Camera(Point3 lookfrom, Point3 lookat, Vec3 vup, double vertical_fov,
+           double aspect_ratio) {
+
+        // The angle theta is the angle between the upper and lower part of the
+        // viewport.
+        auto theta = degress_to_radians(vertical_fov);
+
+        // h is the distance from the z-axis to the top of the viewport.
+        auto h = tan(theta / 2);
 
         // The viewport is the size of the projection plane.
-        auto viewport_height = 2.0;
+        auto viewport_height = 2.0 * h;
         auto viewport_width = aspect_ratio * viewport_height;
 
-        // Focal length is the distance between the projection plane and the
-        // projection point.
-        auto focal_length = 1.0;
+        auto w = unit_vector(lookfrom - lookat);
+        auto u = unit_vector(cross(vup, w));
+        auto v = cross(w, u);
 
-        m_origin = Point3(0.0, 0.0, 0.0);
-        m_horizontal = Vec3(viewport_width, 0.0, 0.0);
-        m_vertical = Vec3(0.0, viewport_height, 0.0);
-        m_lower_left_corner = m_origin - m_horizontal / 2 - m_vertical / 2 -
-                              Vec3(0.0, 0.0, focal_length);
+        m_origin = lookfrom;
+        m_horizontal = viewport_width * u;
+        m_vertical = viewport_height * v;
+        m_lower_left_corner = m_origin - m_horizontal / 2 - m_vertical / 2 - w;
     }
 
     // u and v are values between 0.0 - 1.0.
-    Ray get_ray(double u, double v) {
-        return Ray(m_origin, m_lower_left_corner + u * m_horizontal +
-                   v * m_vertical - m_origin);
+    Ray get_ray(double s, double t) {
+        return Ray(m_origin, m_lower_left_corner + s * m_horizontal +
+            t * m_vertical - m_origin);
     }
 
 private:
