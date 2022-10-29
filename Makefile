@@ -1,5 +1,6 @@
 CXX = g++
 CXXFLAGS = -Wall -Wextra
+LINK_FLAGS = -pthread	
 DEBUG_FLAGS = -g
 
 SRC_DIR = src
@@ -9,7 +10,7 @@ BUILD_DIR = build
 OUT = $(BUILD_DIR)/rt
 OUT_IMAGE = image.ppm
 
-SRCS = main.cpp
+SRCS = main.cpp thread_pool.cpp
 OBJS = $(SRCS:.cpp=.o)
 BUILD_SRCS = $(addprefix $(BUILD_DIR)/, $(OBJS))
 
@@ -26,7 +27,7 @@ prep:
 build: prep $(OUT)
 
 $(OUT): $(BUILD_SRCS)
-	$(CXX) $^ $(CXXFLAGS) -o $(OUT)
+	$(CXX) $^ $(CXXFLAGS) $(LINK_FLAGS) -o $(OUT)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) -I$(INCLUDE_DIR) -c $(CXXFLAGS) -o $@ $<

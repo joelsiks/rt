@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "iosfwd": "cpp",
+        "condition_variable": "cpp"
+    }
+}

@@ -8,6 +8,8 @@
 
 #include "camera.h"
 
+#include "thread_pool.h"
+
 #include <iostream>
 
 HittableList random_scene() {
@@ -87,10 +89,10 @@ int main() {
 
     // Image
     const auto aspect_ratio = 3.0 / 2.0;
-    const int image_width = 1200;
+    const int image_width = 700;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
     const int samples_per_pixel = 500;
-    const int ray_bounce_limit = 50;
+    const int ray_bounce_limit = 30;
 
     // World
     HittableList world = random_scene();
@@ -119,23 +121,42 @@ int main() {
     // Render
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
+    // Pixel color data.
+    Color pixel_colors[image_height][image_width];
+
+    auto calculate_pixel_color = [&](int row, int col) {
+        Color pixel_color(0.0, 0.0, 0.0);
+
+        // The pixel color for each pixel is made up of blend of rays in
+        // close proximity to the actual pixel ray.
+        for(int s = 0; s < samples_per_pixel; s++) {
+            auto u = (col + random_double()) / (image_width - 1);
+            auto v = (row + random_double()) / (image_height - 1);
+
+            Ray r = cam.get_ray(u, v);
+            pixel_color += ray_color(r, world, ray_bounce_limit);
+        }
+
+        pixel_colors[row][col] = pixel_color;
+    };
+
+    ThreadPool thread_pool;
+
+    thread_pool.start();
+
     for(int j = image_height - 1; j >= 0; j--) {
-        std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for(int i = 0; i < image_width; i++) {
-            Color pixel_color(0.0, 0.0, 0.0);
+            thread_pool.queue_job([&]() {
+                calculate_pixel_color(j, i);
+            });
+        }
+    }
 
-            // The pixel color for each pixel is made up of blend of rays in
-            // close proximity to the actual pixel ray.
-            for(int s = 0; s < samples_per_pixel; s++) {
-                auto u = (i + random_double()) / (image_width - 1);
-                auto v = (j + random_double()) / (image_height - 1);
+    thread_pool.stop();
 
-                Ray r = cam.get_ray(u, v);
-                pixel_color += ray_color(r, world, ray_bounce_limit);
-            }
-
-            // pixel_color gets scaled down by the samples_per_pixel here
-            write_color(std::cout, pixel_color, samples_per_pixel);
+    for(int j = image_height - 1; j >= 0; j--) {
+        for(int i = 0; i < image_width; i++) {
+            write_color(std::cout, pixel_colors[j][i], samples_per_pixel);
         }
     }
 
