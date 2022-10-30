@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -Wall -Wextra
-LINK_FLAGS = -pthread	
+LINK_FLAGS = -pthread
 DEBUG_FLAGS = -g
 
 SRC_DIR = src
