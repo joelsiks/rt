@@ -9,7 +9,7 @@ struct HitRecord;
 class Material {
 public:
     virtual bool scatter(const Ray &r_in, const HitRecord& rec,
-            Color& attenuation, Ray& scattered) const = 0;
+                         Color& attenuation, Ray& scattered) const = 0;
 };
 
 // Lambertian reflection is a diffuse relection, relecting at random angles
@@ -19,7 +19,7 @@ public:
     Lambertian(const Color& albedo) : m_albedo(albedo) {}
 
     virtual bool scatter(const Ray& r_in __attribute__((unused)), const HitRecord& rec,
-            Color& attenuation, Ray& scattered) const override {
+                         Color& attenuation, Ray& scattered) const override {
 
         auto scatter_direction = rec.normal + random_unit_vector();
 
@@ -48,7 +48,7 @@ public:
         : m_albedo(albedo), m_fuzz(fuzz < 1 ? fuzz : 1) {}
 
     virtual bool scatter(const Ray& r_in, const HitRecord& rec,
-            Color& attenuation, Ray& scattered) const override {
+                         Color& attenuation, Ray& scattered) const override {
 
         auto reflect_direction = reflect(unit_vector(r_in.direction()), rec.normal);
         scattered = Ray(rec.point,
@@ -68,7 +68,7 @@ public:
     Dielectric(double index_of_refraction) : m_ir(index_of_refraction) {}
 
     virtual bool scatter(const Ray& r_in, const HitRecord& rec,
-            Color& attenuation, Ray& scattered) const override {
+                         Color& attenuation, Ray& scattered) const override {
 
         attenuation = Color(1.0, 1.0, 1.0);
         double refraction_ratio = rec.front_face ? (1.0 / m_ir) : m_ir;
@@ -81,7 +81,7 @@ public:
         Vec3 direction;
 
         if(cannot_refract ||
-            reflectance(cos_theta, refraction_ratio) > random_double()) {
+                reflectance(cos_theta, refraction_ratio) > random_double()) {
             direction = reflect(unit_direction, rec.normal);
         } else {
             direction = refract(unit_direction, rec.normal, refraction_ratio);

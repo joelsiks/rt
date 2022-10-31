@@ -87,37 +87,37 @@ Color ray_color(const Ray& r, const Hittable& world, int depth) {
 
 
 void thread_calculate_pixel_color(Camera& cam, const HittableList& world,
-    std::vector<Color>& pixels_color,
-    const int image_height, const int image_width, const int samples_per_pixel,
-    const int ray_bounce_limit, const int num_threads, const int tid) {
+                                  std::vector<Color>& pixels_color,
+                                  const int image_height, const int image_width, const int samples_per_pixel,
+                                  const int ray_bounce_limit, const int num_threads, const int tid) {
 
-        for(int j = image_height - tid - 1; j >= 0; j -= num_threads) {
-            for(int i = 0; i < image_width; i++) {
-                Color pixel_color(0.0, 0.0, 0.0);
+    for(int j = image_height - tid - 1; j >= 0; j -= num_threads) {
+        for(int i = 0; i < image_width; i++) {
+            Color pixel_color(0.0, 0.0, 0.0);
 
-                // The pixel color for each pixel is made up of blend of rays in
-                // close proximity to the actual pixel ray.
-                for(int s = 0; s < samples_per_pixel; s++) {
-                    auto u = (i + random_double()) / (image_width - 1);
-                    auto v = (j + random_double()) / (image_height - 1);
+            // The pixel color for each pixel is made up of blend of rays in
+            // close proximity to the actual pixel ray.
+            for(int s = 0; s < samples_per_pixel; s++) {
+                auto u = (i + random_double()) / (image_width - 1);
+                auto v = (j + random_double()) / (image_height - 1);
 
-                    Ray r = cam.get_ray(u, v);
-                    pixel_color += ray_color(r, world, ray_bounce_limit);
-                }
-
-                pixels_color[j * image_width + i] = pixel_color;
+                Ray r = cam.get_ray(u, v);
+                pixel_color += ray_color(r, world, ray_bounce_limit);
             }
-            std::cerr << "Done with row '" << j << "', tid=" << tid << "\n";
-        }
 
-        std::cerr << "Tid '" << tid << "' completed.\n";
-    };
+            pixels_color[j * image_width + i] = pixel_color;
+        }
+        std::cerr << "Done with row '" << j << "', tid=" << tid << "\n";
+    }
+
+    std::cerr << "Tid '" << tid << "' completed.\n";
+};
 
 int main() {
 
     // Image
     const auto aspect_ratio = 3.0 / 2.0;
-    const int image_width = 100;
+    const int image_width = 1200;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
     const int samples_per_pixel = 500;
     const int ray_bounce_limit = 30;
@@ -144,13 +144,13 @@ int main() {
     auto dist_to_focus = 10.0;
 
     Camera cam(lookfrom, lookat, vup, fov_deg, aspect_ratio, aperture,
-            dist_to_focus);
+               dist_to_focus);
 
     // Pixel color data.
     std::vector<Color> pixels_color(image_width * image_height);
 
-    ThreadPool thread_pool;
     int num_threads = std::thread::hardware_concurrency();
+    ThreadPool thread_pool(num_threads);
 
     thread_pool.start();
 

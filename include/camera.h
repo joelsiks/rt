@@ -29,7 +29,7 @@ public:
         m_horizontal = focus_dist * viewport_width * m_u;
         m_vertical = focus_dist * viewport_height * m_v;
         m_lower_left_corner = m_origin - m_horizontal / 2 - m_vertical / 2 -
-            focus_dist * m_w;
+                              focus_dist * m_w;
 
         m_lens_radius = aperture / 2;
     }
@@ -40,7 +40,7 @@ public:
         Vec3 offset = m_u * rd.x() + m_v * rd.y();
 
         return Ray(m_origin + offset, m_lower_left_corner + s * m_horizontal +
-            t * m_vertical - m_origin - offset);
+                   t * m_vertical - m_origin - offset);
     }
 
 private:
