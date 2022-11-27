@@ -11,6 +11,7 @@
 #include "thread_pool.h"
 
 #include <iostream>
+#include <thread>
 
 HittableList random_scene() {
     HittableList world;
@@ -91,6 +92,9 @@ void thread_calculate_pixel_color(Camera& cam, const HittableList& world,
                                   const int image_height, const int image_width, const int samples_per_pixel,
                                   const int ray_bounce_limit, const int num_threads, const int tid) {
 
+    // Each thread is responsible for every num_threads row of pixels to
+    // calculate. This goes well with memory locality since pixels are stored
+    // row after row.
     for(int j = image_height - tid - 1; j >= 0; j -= num_threads) {
         for(int i = 0; i < image_width; i++) {
             Color pixel_color(0.0, 0.0, 0.0);
@@ -117,7 +121,7 @@ int main() {
 
     // Image
     const auto aspect_ratio = 3.0 / 2.0;
-    const int image_width = 1200;
+    const int image_width = 50;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
     const int samples_per_pixel = 500;
     const int ray_bounce_limit = 30;
@@ -162,6 +166,23 @@ int main() {
     }
 
     thread_pool.stop();
+
+    /*
+    unsigned int num_threads = std::thread::hardware_concurrency();
+    std::vector<std::thread> threads;
+
+    // Start thread jobs
+    for(unsigned int i = 0; i < num_threads; i++) {
+        threads.emplace_back([=, &cam, &world, &pixels_color]() {
+            thread_calculate_pixel_color(cam, world, pixels_color, image_height, image_width, samples_per_pixel, ray_bounce_limit, num_threads, i);
+        });
+    }
+
+    // Join all threads
+    for(std::thread& t : threads) {
+        t.join();
+    }
+    */
 
     // Render
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
